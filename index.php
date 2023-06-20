@@ -21,10 +21,10 @@ $showAll = "SELECT * FROM people";
 $surname = 'Прохоров';
 $name = 'Игорь';
 $patronymic = 'Андреевич';
-$birth_date = '1988-08-12';
-$gender = 1;
-$phone = '+375294447744';
-$mail = 'prohor@gmail.com';
+$birth_date = '1988-08-12'; // перевод введеной даты в тип sql
+$gender = 1; // отображение пола для людей если запрашивается
+$phone = '+375294447744'; // проверка белорусского телефона
+$mail = 'prohor@gmail.com'; // проверка мэйла
 $height = 180;
 $weight = 77.2;
 
@@ -69,9 +69,9 @@ function showAllTables($connTable, $showAll)
     }
 }
 
-function showTable($connTable)
+function showRow($connTable)
 {
-    $showOne = "SELECT * FROM people WHERE surname='Шошу'";
+    $showOne = "SELECT * FROM people WHERE surname='Шошу'"; // динамический выбор
     if ($result = $connTable->query($showOne)) {
         showInfo($result);
     } else {
@@ -79,7 +79,7 @@ function showTable($connTable)
     }
 }
 
-function addInfo($surname, $name, $patronymic, $birth_date, $gender, $phone, $mail, $height, $weight, $connTable)
+function addInfo($surname, $name, $patronymic, $birth_date, $gender, $phone, $mail, $height, $weight, $connTable) 
 {
     $addOne = "INSERT INTO people (surname, name, patronymic, birth_date, gender, phone, mail, height, weight) VALUES ('{$surname}', '{$name}', '{$patronymic}', '{$birth_date}', {$gender}, '{$phone}', '{$mail}', {$height}, {$weight})";
     if (!$connTable->query($addOne)) {
@@ -87,7 +87,7 @@ function addInfo($surname, $name, $patronymic, $birth_date, $gender, $phone, $ma
     }
 }
 
-function updateInfo($surname, $name, $patronymic, $birth_date, $gender, $phone, $mail, $height, $weight, $connTable)
+function updateInfo($surname, $name, $patronymic, $birth_date, $gender, $phone, $mail, $height, $weight, $connTable) // динамическое обновление не всей информации
 {
     $updateOne = "UPDATE people SET surname = '{$surname}', name = '{$name}', patronymic = '{$patronymic}', birth_date = '{$birth_date}', gender = {$gender}, phone = '{$phone}', mail = '{$mail}', height = {$height}, weight = {$weight} WHERE name = 'Андрей'";
     if (!$connTable->query($updateOne)) {
@@ -95,7 +95,7 @@ function updateInfo($surname, $name, $patronymic, $birth_date, $gender, $phone, 
     }
 }
 
-function deleteInfo($surname, $connTable)
+function deleteInfo($surname, $connTable) // удаление одного а не нескольких (привзяка по ID -> добавление переменной выбора ID -> проверка ID или его вытягивание?)
 {
     $deleteOne = "DELETE FROM people WHERE surname='{$surname}'";
     if (!$connTable->query($deleteOne)) {
@@ -105,7 +105,7 @@ function deleteInfo($surname, $connTable)
 
 function findInfo($connTable)
 {
-    $findInfo = "SELECT * FROM people WHERE phone LIKE '+375295618065'";
+    $findInfo = "SELECT * FROM people WHERE phone LIKE '+375295618065'"; // универсальность поиска
     if ($result = $connTable->query($findInfo)) {
         showInfo($result);
     } else {
@@ -115,7 +115,7 @@ function findInfo($connTable)
 
 addFirstInfo($connTable, $showAll);
 showAllTables($connTable, $showAll);
-// showTable($connTable);
+// showRow($connTable);
 // addInfo($surname, $name, $patronymic, $birth_date, $gender, $phone, $mail, $height, $weight, $connTable);
 // updateInfo($surname, $name, $patronymic, $birth_date, $gender, $phone, $mail, $height, $weight, $connTable);
 // deleteInfo($surname, $connTable);
