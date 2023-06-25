@@ -4,10 +4,10 @@ $connDatabase = new mysqli("localhost", "root", "root", "", "3306");
 if ($connDatabase->connect_error) {
     die("Ошибка: " . $connDatabase->connect_error);
 }
-if (!$connDatabase->query("CREATE DATABASE IF NOT EXISTS db122")) {
+if (!$connDatabase->query("CREATE DATABASE IF NOT EXISTS db1231234")) {
     die("База данных не была создана!");
 }
-$connTable = new mysqli("localhost", "root", "root", "db122", "3306");
+$connTable = new mysqli("localhost", "root", "root", "db1231234", "3306");
 if ($connTable->connect_error) {
     die("Ошибка: " . $connTable->connect_error);
 }
@@ -18,25 +18,41 @@ if (!$connTable->query($createTable)) {
 
 $showAll = "SELECT * FROM people";
 
-$id = 1;
+$id = 6;
 $findParameter = 'phone';
 $findValue = '+375295618065';
-$updateParameter = 'surname';
-$updateValue = 'Головашко';
 $showRowParameter = 'name';
-$showRowValue = 'Игорь';
+$showRowValue = 'Алексей';
 $surname = 'Прохоров';
 $name = 'Игорь';
 $patronymic = 'Андреевич';
 $birth_date = date("Y-m-d", strtotime('19.12.2003'));
-$gender = 1; // отображение пола для людей если запрашивается
-$phone = '+375294447744'; // проверка белорусского телефона
+$gender = 1; 
+$phone = '+375294447744'; 
+$phonePattern = '/^(\+375|80)(29|25|44|33)(\d{7})$/i';
 $mail = 'prohor@gmail.com';
-if (!filter_var($mail, FILTER_VALIDATE_EMAIL)) {
-    die("Неверно указана почта!");
-}
 $height = 180;
 $weight = 77.2;
+
+$surnameNew = 'Ношгм';
+$nameNew = '';
+$patronymicNew = '';
+$birth_dateNew = date("Y-m-d", strtotime('22.12.2022'));
+$genderNew = 0;
+$phoneNew = '+375295555555'; 
+$mailNew = 'prohor555@gmail.com';
+$heightNew = '';
+$weightNew = 100.2;
+$newStringsArray = ['surname' => $surnameNew, 'name' => $nameNew, 'patronymic' => $patronymicNew, 'birth_date' => $birth_dateNew, 'phone' => $phoneNew, 'mail' => $mailNew];
+$newIntegersArray = ['gender' => $genderNew, 'height' => $heightNew, 'weight' => $weightNew];
+
+if ((!filter_var($mail, FILTER_VALIDATE_EMAIL)) || (!filter_var($mailNew, FILTER_VALIDATE_EMAIL))) {
+    die("Неверно указана почта!");
+}
+
+if ((!preg_match($phonePattern, $phone)) || (!preg_match($phonePattern, $phoneNew))) {
+    die("Номер телефона не соответствует формату!");
+}
 
 function addFirstInfo($connTable, $showAll)
 {
@@ -61,6 +77,14 @@ function showInfo($result)
         echo "<td>" . $row["name"] . "</td>";
         echo "<td>" . $row["patronymic"] . "</td>";
         echo "<td>" . $row["birth_date"] . "</td>";
+        if ($row["gender"] == 0) {
+            echo "<td>" . 'ж' . "</td>"; 
+        } elseif ($row["gender"] == 1) {
+            echo "<td>" . 'м' . "</td>"; 
+        } else {
+            var_dump($row["gender"]);
+            die('Неверно введен пол в таблицу!');
+        }
         echo "<td>" . $row["gender"] . "</td>";
         echo "<td>" . $row["phone"] . "</td>";
         echo "<td>" . $row["mail"] . "</td>";
@@ -90,7 +114,7 @@ function showRow($connTable, $showRowParameter, $showRowValue)
     }
 }
 
-function addInfo($surname, $name, $patronymic, $birth_date, $gender, $phone, $mail, $height, $weight, $connTable) 
+function addInfo($surname, $name, $patronymic, $birth_date, $gender, $phone, $mail, $height, $weight, $connTable)
 {
     $addOne = "INSERT INTO people (surname, name, patronymic, birth_date, gender, phone, mail, height, weight) VALUES ('{$surname}', '{$name}', '{$patronymic}', '{$birth_date}', {$gender}, '{$phone}', '{$mail}', {$height}, {$weight})";
     if (!$connTable->query($addOne)) {
@@ -98,11 +122,23 @@ function addInfo($surname, $name, $patronymic, $birth_date, $gender, $phone, $ma
     }
 }
 
-function updateInfo($surname, $name, $patronymic, $birth_date, $gender, $phone, $mail, $height, $weight, $connTable, $updateParameter, $updateValue) // динамическое обновление не всей информации -> новые переменные и их проверка с массивом??
+function updateInfo($newStringsArray, $newIntegersArray, $connTable, $id) // динамическое обновление не всей информации -> новые переменные и их проверка с массивом??
 {
-    $updateOne = "UPDATE people SET surname = '{$surname}', name = '{$name}', patronymic = '{$patronymic}', birth_date = '{$birth_date}', gender = {$gender}, phone = '{$phone}', mail = '{$mail}', height = {$height}, weight = {$weight} WHERE {$updateParameter} = '{$updateValue}'";
-    if (!$connTable->query($updateOne)) {
-        echo "Ошибка: " . $connTable->error;
+    foreach ($newStringsArray as $key => $value) {
+        if (!empty($value)) {
+            $updateOne = "UPDATE people SET {$key} = '{$value}'  WHERE id = {$id}";
+            if (!$connTable->query($updateOne)) {
+                echo "Ошибка: " . $connTable->error;
+            }
+        }
+    }
+    foreach ($newIntegersArray as $key => $value) {
+        if (!empty($value)) {
+            $updateOne = "UPDATE people SET {$key} = {$value}  WHERE id = {$id}";
+            if (!$connTable->query($updateOne)) {
+                echo "Ошибка: " . $connTable->error;
+            }
+        }
     }
 }
 
@@ -116,7 +152,11 @@ function deleteInfo($id, $connTable)
 
 function findInfo($findParameter, $findValue, $connTable)
 {
-    $findInfo = "SELECT * FROM people WHERE {$findParameter} LIKE '{$findValue}'";
+    if (gettype($findValue) === "string") {
+        $findInfo = "SELECT * FROM people WHERE {$findParameter} LIKE '{$findValue}'";
+    } else {
+        $findInfo = "SELECT * FROM people WHERE {$findParameter} LIKE {$findValue}";
+    }
     if ($result = $connTable->query($findInfo)) {
         showInfo($result);
     } else {
@@ -126,9 +166,8 @@ function findInfo($findParameter, $findValue, $connTable)
 
 addFirstInfo($connTable, $showAll);
 showAllTables($connTable, $showAll);
-showRow($connTable, $showRowParameter, $showRowValue);
-addInfo($surname, $name, $patronymic, $birth_date, $gender, $phone, $mail, $height, $weight, $connTable);
-updateInfo($surname, $name, $patronymic, $birth_date, $gender, $phone, $mail, $height, $weight, $connTable, $updateParameter, $updateValue);
-deleteInfo($id, $connTable);
-findInfo($findParameter, $findValue, $connTable);
-
+// showRow($connTable, $showRowParameter, $showRowValue);
+// addInfo($surname, $name, $patronymic, $birth_date, $gender, $phone, $mail, $height, $weight, $connTable);
+// updateInfo($newStringsArray, $newIntegersArray, $connTable, $id);
+// deleteInfo($id, $connTable);
+// findInfo($findParameter, $findValue, $connTable);
